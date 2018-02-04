@@ -49,7 +49,7 @@ openstack overcloud deploy --templates $(echo "${ENV_FILES}") -r ${SCRIPT_DIR}/r
 . ./overcloudrc
 ./post_overcloud_deploy.sh
 if [[ "${ENV_FILES}" =~ "neutron-ovs-hw-offload.yaml" ]]; then
-  SETUP_NETWORK_TYPE=${NETWORK_TYPE} SETUP_OVS_OFFLOAD=true /net/mtrlabfs01/vol/QA/qa/qa/cloudx/openstack/scripts/basic_networking1.sh direct direct
+  SETUP_NETWORK_TYPE=${NETWORK_TYPE} SETUP_OVS_OFFLOAD=true ${SCRIPT_DIR}/overcloud_verify.sh direct direct
 else
-  SETUP_NETWORK_TYPE=${NETWORK_TYPE} SETUP_OVS_OFFLOAD=false /net/mtrlabfs01/vol/QA/qa/qa/cloudx/openstack/scripts/basic_networking1.sh direct direct
+  SETUP_NETWORK_TYPE=${NETWORK_TYPE} SETUP_OVS_OFFLOAD=false ${SCRIPT_DIR}/overcloud_verify.sh direct direct
 fi
