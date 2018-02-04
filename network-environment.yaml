@@ -1,0 +1,192 @@
+resource_registry:
+  # NOTES:
+  # 17.1.2018 - ASAP^2 no way working multiple ports.
+  # 17.1.2018 - SR-IOV legacy only possible to add 1 PF to ovs-bridge otherwise loops will accour, even if using stp_enable=true / rstp_enable_true.
+
+  # Usage: SR-IOV legacy vlan 1 PF on ovs-bridge other PF's free.
+  #OS::TripleO::ComputeSriov::Net::SoftwareConfig: ./nic-configs/compute-multiple-ports-sriov-paravirt.yaml
+
+  # Usage: SR-IOV legacy vlan when doing ComputeSriov(SR-IOV+PV) and Compute(PV only) nodes.
+  #OS::TripleO::ComputeSriov::Net::SoftwareConfig: ./nic-configs/compute-multiple-ports-sriov.yaml
+  #OS::TripleO::Compute::Net::SoftwareConfig: ./nic-configs/compute-single-port-sriov-paravirt.yaml
+
+  # Usage(?ASK: moshe): ASAP^2 vlan when doing ComputeSriov(SR-IOV+PV) and Compute(PV only) nodes.
+  #OS::TripleO::ComputeSriov::Net::SoftwareConfig: ./nic-configs/compute-multiple-ports-sriov.yaml
+  #OS::TripleO::Compute::Net::SoftwareConfig: ./nic-configs/compute-single-port-sriov-paravirt.yaml
+
+  # Usage: ASAP^2 SR-IOV vlan 1 PF on ovs-bridge (must be otherwise no dhcp).
+  OS::TripleO::ComputeSriov::Net::SoftwareConfig: ./nic-configs/compute-single-port-sriov-paravirt.yaml
+
+  # Usage: ASAP^2 SR-IOV vxlan on PF.
+  #OS::TripleO::ComputeSriov::Net::SoftwareConfig: ./nic-configs/compute-single-port-sriov.yaml
+
+  # Usage: ASAP^2 SR-IOV vxlan on ovs-bridge with PF.
+  #OS::TripleO::ComputeSriov::Net::SoftwareConfig: ./nic-configs/compute-single-port-sriov-paravirt.yaml
+
+  # Usage: ASAP^2 SR-IOV vxlan on vlan interface (Not working).
+  # TODO
+
+  # Usage: SR-IOV legacy / ASAP^2 bonding
+  # TODO
+
+  #OS::TripleO::BlockStorage::Net::SoftwareConfig: ./nic-configs/cinder-storage.yaml
+  OS::TripleO::Controller::Net::SoftwareConfig: ./nic-configs/controller.yaml
+
+  OS::TripleO::NodeUserData: /usr/share/openstack-tripleo-heat-templates/firstboot/userdata_root_password.yaml
+
+parameter_defaults:
+  NodeRootPassword: cloud
+  # Customize all these values to match the local environment
+  InternalApiNetCidr: 172.17.0.0/24
+  StorageNetCidr: 172.18.0.0/24
+  StorageMgmtNetCidr: 172.19.0.0/24
+  TenantNetCidr: 172.16.0.0/24
+  ExternalNetCidr: 10.209.86.0/24
+  # CIDR subnet mask length for provisioning network
+  ControlPlaneSubnetCidr: '24'
+  InternalApiAllocationPools: [{'start': '172.17.0.10', 'end': '172.17.0.200'}]
+  StorageAllocationPools: [{'start': '172.18.0.10', 'end': '172.18.0.200'}]
+  StorageMgmtAllocationPools: [{'start': '172.19.0.10', 'end': '172.19.0.200'}]
+  TenantAllocationPools: [{'start': '172.16.0.10', 'end': '172.16.0.200'}]
+  # Use an External allocation pool which will leave room for floating IPs
+  ExternalAllocationPools: [{'start': '10.209.86.50', 'end': '10.209.86.51'}]
+  # Set to the router gateway on the external network
+  ExternalInterfaceDefaultRoute: 10.209.86.1
+  # Gateway router for the provisioning network (or Undercloud IP)
+  ControlPlaneDefaultRoute: 192.168.25.1
+  # Generally the IP of the Undercloud
+  EC2MetadataIp: 192.168.25.1
+  InternalApiNetworkVlanID: 6
+  StorageNetworkVlanID: 7
+  StorageMgmtNetworkVlanID: 8
+  #TenantNetworkVlanID: 9
+  # Define the DNS servers (maximum 2) for the overcloud nodes
+  DnsServers: ["8.8.8.8","8.8.4.4"]
+  # May set to br-ex if using floating IPs only on native VLAN on bridge br-ex
+  NeutronExternalNetworkBridge: "br-ex"
+  # The tunnel type for the tenant network (vxlan or gre). Set to '' to disable tunneling.
+  NeutronTunnelTypes: ''
+  # The tenant network type for Neutron (vlan or vxlan).
+  NeutronNetworkType: 'vlan'
+  # The OVS logical->physical bridge mappings to use.
+  NeutronBridgeMappings: 'datacentre:br-ex,tenant:br-mlnx'
+  # The Neutron ML2 and OpenVSwitch vlan mapping range to support.
+  NeutronNetworkVLANRanges: 'tenant:10:20'
+  NeutronTunnelIdRanges: ''
+  # NTP server configuration.
+  NtpServer: ['10.211.0.134','10.211.0.124']
+  # Timezone
+  TimeZone: 'Israel'
+  # Debug mode for all openstack services
+  Debug: true
+  # MTU global configuration
+  #NeutronGlobalPhysnetMtu: 9000
+  # DHCP provide metadata route to VM.
+  NeutronEnableIsolatedMetadata: true
+  # DHCP always provides metadata route to VM.
+  NeutronEnableForceMetadata: true
+
+  #############################
+  # Setup scale configuration #
+  #############################
+  # Nova flavor to use.
+  OvercloudControllerFlavor: control
+  OvercloudComputeFlavor: compute
+  OvercloudComputeSriovFlavor: compute
+  OvercloudBlockStorageFlavor: block-storage
+  #Number of nodes to deploy.
+  ControllerCount: 1
+  ComputeCount: 0
+  ComputeSriovCount: 2
+  BlockStorageCount: 0
+
+  ####################
+  # Extra nic params #
+  ####################
+  ExternalPortName: "em1"
+  MellanoxPortName: "p1p1"
+
+  ##############################
+  # SRIOV legacy configuration #
+  ##############################
+  #NeutronMechanismDrivers: ['sriovnicswitch', 'openvswitch']
+
+  #ComputeParameters:
+  #  KernelArgs: iommu=pt intel_iommu=on
+  #NeutronPhysicalDevMappings: "tenant:p2p1,tenant:p4p1,tenant:p4p2,tenant:p6p1,tenant:p6p2"
+  #NeutronSriovNumVFs: "p2p1:2,p4p1:2,p4p2:2,p6p1:2,p6p2:2"
+  #NovaPCIPassthrough:
+  #- devname: "p2p1"
+  #  physical_network: "tenant"
+  #- devname: "p4p1"
+  #  physical_network: "tenant"
+  #- devname: "p4p2"
+  #  physical_network: "tenant"
+  #- devname: "p6p1"
+  #  physical_network: "tenant"
+  #- devname: "p6p2"
+  #  physical_network: "tenant"
+
+  ##################
+  # OVS HW offload #
+  ##################
+  # Kernel arguments for ComputeSriov node
+  ComputeSriovParameters:
+    KernelArgs: "intel_iommu=on iommu=pt"
+    OvsHwOffload: True
+    # Number of VFs that needs to be configured for a physical interface
+    #NeutronSriovNumVFs: ["p2p1:2:switchdev","p4p1:2:switchdev","p4p2:2:switchdev","p6p1:2:switchdev","p6p2:2:switchdev"]
+    NeutronSriovNumVFs: ["p6p1:64:switchdev"]
+    # Mapping of SR-IOV PF interface to neutron physical_network.
+    # In case of Vxlan/GRE physical_network should be null.
+    # In case of flat/vlan the physical_network should as configured in neutron.
+    NovaPCIPassthrough:
+    - devname: "p6p1"
+      physical_network: "tenant"
+    #- devname: "p4p1"
+    #  physical_network: "tenant"
+    #- devname: "p4p2"
+    #  physical_network: "tenant"
+    #- devname: "p6p1"
+    #  physical_network: "tenant"
+    #- devname: "p6p2"
+    #  physical_network: "tenant"
+    #  physical_network: null
+
+  ################
+  # SR-IOV extra #
+  ################
+  NovaSchedulerDefaultFilters: ['RetryFilter','AvailabilityZoneFilter','RamFilter','ComputeFilter','ComputeCapabilitiesFilter','ImagePropertiesFilter','ServerGroupAntiAffinityFilter','ServerGroupAffinityFilter','PciPassthroughFilter']
+  NovaSchedulerAvailableFilters: ["nova.scheduler.filters.all_filters","nova.scheduler.filters.pci_passthrough_filter.PciPassthroughFilter"]
+
+  ################
+  # Opendaylight #
+  ################
+  NeutronEnableForceMetadata: true
+  # Not supported - port_security
+  #NeutronPluginExtensions: 'port_security'
+  NeutronPluginExtensions: ''
+  NeutronMechanismDrivers: ['opendaylight_v2']
+  NeutronServicePlugins: 'odl-router_v2,trunk'
+
+  ######################
+  # ISER configuration #
+  ######################
+  ## Whether to enable iscsi backend for Cinder.
+  CinderEnableIscsiBackend: true
+  CinderISCSIProtocol: 'iser'
+  CinderISCSIHelper: 'lioadm'
+
+  ## Whether to enable rbd (Ceph) backend for Cinder.
+  CinderEnableRbdBackend: false
+
+  ## Whether to enable NFS backend for Cinder.
+  CinderEnableNfsBackend: false
+
+  ## Whether to enable rbd (Ceph) backend for Nova ephemeral storage.
+  NovaEnableRbdBackend: false
+
+  ## Glance backend can be either 'rbd' (Ceph), 'swift' or 'file'.
+  ## GlanceBackend: swift
+
+  CinderLVMLoopDeviceSize: 102800

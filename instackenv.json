@@ -1,0 +1,22 @@
+{
+    "nodes":[
+        {
+            "pm_type":"pxe_ipmitool",
+            "pm_user":"ipmi_user",
+            "pm_password":"ipmi_pass",
+            "pm_addr":"ov-node1-ilo"
+        },
+        {
+            "pm_type":"pxe_ipmitool",
+            "pm_user":"ipmi_user",
+            "pm_password":"ipmi_pass",
+            "pm_addr":"ov-node2-ilo"
+        },
+        {
+            "pm_type":"pxe_ipmitool",
+            "pm_user":"ipmi_user",
+            "pm_password":"ipmi_pass",
+            "pm_addr":"ov-node3-ilo"
+        }
+    ]
+}
